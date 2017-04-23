@@ -31,15 +31,16 @@ import ru.yandex.translate.YanAPI.Translate;
 
 public class TranslateActivity extends AppCompatActivity {
 
-    HashMap<String, String> langs;
     Settings settings;
     History history;
+    HashMap<String, String> recentRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.translate_activity);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        recentRequest = new HashMap<>();
         try {
             settings = Settings.loadSettings("settings"); //загружаем настройки с языками
 
@@ -106,11 +107,15 @@ public class TranslateActivity extends AppCompatActivity {
         TextView et = (TextView) findViewById(R.id.translation);
         String translate;
         try {
-            translate = t.get(5, TimeUnit.SECONDS);
+            translate = recentRequest.get(text.getText().toString() +" - "+toLang); //проверяем был ли недавно такой запрос
+            if (translate == null) {
+                translate = t.get(5, TimeUnit.SECONDS);
+                recentRequest.put(text.getText().toString() + " - " + toLang, translate);
+                String[] element = {text.getText().toString(), translate};
+                history.addHistory(element); //добавляем перевод в историю
+                history.saveHistory("history"); //сохраняем историю
+            }
             et.setText(translate); //выводим перевод
-            String[] element = {text.getText().toString(), translate};
-            history.addHistory(element); //добавляем перевод в историю
-            history.saveHistory("history"); //сохраняем историю
         } catch (IOException ex) {
             this.finish();
         } catch (ExecutionException ex) {
