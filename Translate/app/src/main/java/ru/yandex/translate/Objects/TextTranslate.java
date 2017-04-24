@@ -13,13 +13,6 @@ public class TextTranslate implements Serializable {
     public TextTranslate() {
     }
 
-    public TextTranslate(String original, String translate, String fromLang, String toLang) {
-        this.original = original;
-        this.translate = translate;
-        this.fromLang = fromLang;
-        this.toLang = toLang;
-    }
-
     public TextTranslate(String original, String translate) {
         this.original = original;
         this.translate = translate;

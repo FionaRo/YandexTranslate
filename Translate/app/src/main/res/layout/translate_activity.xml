@@ -108,7 +108,6 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:layout_weight="1"
-            android:lines="2"
             android:maxLines="10" />
     </LinearLayout>
 
@@ -121,7 +120,7 @@
         android:layout_marginStart="8dp"
         android:autoLink="web"
         android:linksClickable="true"
-        android:text="«Реализовано с помощью сервиса «Яндекс.Переводчик»» http://translate.yandex.ru/"
+        android:text="Реализовано с помощью сервисов «Яндекс.Переводчик» http://translate.yandex.ru «Яндекс.Словарь» https://tech.yandex.ru/dictionary"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout4"
         app:layout_constraintLeft_toLeftOf="parent" />
 </android.support.constraint.ConstraintLayout>

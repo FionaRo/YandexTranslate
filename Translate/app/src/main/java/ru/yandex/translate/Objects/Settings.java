@@ -67,8 +67,7 @@ public class Settings implements Serializable {
             AsyncTask<String, Void, JSONObject> t = new GetLangs();
             t.execute("ru"); //отправляем запрос
             JSONObject jsonObject = t.get(5, TimeUnit.SECONDS);
-            if (jsonObject== null)
-            {
+            if (jsonObject == null) {
                 throw new TimeoutException();
             }
             jsonObject = jsonObject.getJSONObject("langs");  //получаем список доступных языков на русском в виде Json

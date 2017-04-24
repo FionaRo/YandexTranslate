@@ -33,6 +33,7 @@ import ru.yandex.translate.Objects.History;
 import ru.yandex.translate.Objects.Settings;
 import ru.yandex.translate.Objects.TextTranslate;
 import ru.yandex.translate.R;
+import ru.yandex.translate.YanAPI.Dictionary;
 import ru.yandex.translate.YanAPI.GetLangs;
 import ru.yandex.translate.YanAPI.Translate;
 
@@ -40,7 +41,7 @@ public class TranslateActivity extends AppCompatActivity {
 
     Settings settings;
     History history;
-    HashMap<String, String> recentRequest;
+    HashMap<String, LinkedList<String>> recentRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,34 +123,73 @@ public class TranslateActivity extends AppCompatActivity {
             translate.setDirectionTranslate(fromLang, toLang);
 
             //проверяем был ли недавно такой запрос
-            String request = recentRequest.get(text.getText().toString() + " - " + toLang);
-            if (request == null) {
-                request = t.get(5, TimeUnit.SECONDS);
-                if (request == null)
-                    throw new RuntimeException();
-                recentRequest.put(text.getText().toString() + " - " + toLang, request);
-                translate.setPairTranslate(text.getText().toString(), request);
-                history.addHistory(translate); //добавляем перевод в историю
+            LinkedList<String> recent = recentRequest.get(text.getText().toString() + " - " + toLang);
+            String request;
+            if (recent == null) {
+
+                AsyncTask<String, Void, JSONObject> task = new Dictionary();
+                task.execute(directionTranslate, text.getText().toString());
+                recent = Dictionary.getDictionary(task.get(5, TimeUnit.SECONDS));
+                if (recent != null) {
+                    recentRequest.put(text.getText().toString() + " - " + toLang, recent);
+                    translate.setPairTranslate(text.getText().toString(), recent.getLast());
+                    history.addHistory(translate); //добавляем перевод в историю
+                } else {
+                    request = t.get(5, TimeUnit.SECONDS);
+                    if (request == null)
+                        throw new RuntimeException();
+                    recent = new LinkedList<>();
+                    request = request.replace("\\n", "<br>");
+                    request = request.replace("\\\"", "&quot;");
+                    recent.push(request);
+                    recentRequest.put(text.getText().toString() + " - " + toLang, recent);
+                    translate.setPairTranslate(text.getText().toString(), recent.getLast());
+                    history.addHistory(translate); //добавляем перевод в историю
+                }
             }
-            request = request.replace("\\n", "<br>");
-            request = request.replace("\\\"", "&quot;");
-            et.setText(Html.fromHtml(request)); //выводим перевод
-        } catch (ExecutionException ex) {
+            String print = new String();
+            int len = recent.size();
+            if (len != 1) {
+                print = print.concat("<b>Варианты перевода:</b><br>");
+                for (int i = len - 1; i >= 0; i--) {
+                    print = print.concat((len - i) + " - " + recent.get(i) + "<br>");
+                }
+            }
+            else print = recent.getFirst();
+            et.setText(Html.fromHtml(print)); //выводим перевод
+        } catch (
+                ExecutionException ex)
+
+        {
             et.setText("Не удалось связаться с сервером");
-        } catch (TimeoutException ex) {
+        } catch (
+                TimeoutException ex)
+
+        {
             et.setText("Проверьте соединение с интернетом");
             return;
-        } catch (InterruptedException ex) {
+        } catch (
+                InterruptedException ex)
+
+        {
             et.setText("Запрос к серверу был прерван");
             return;
-        } catch (RuntimeException ex) {
+        } catch (
+                RuntimeException ex)
+
+        {
             et.setText("Не удалось получить ответ от сервера");
             return;
         }
 
-        try {
+        try
+
+        {
             history.saveHistory("history"); //сохраняем историю
-        } catch (Exception ex) {
+        } catch (
+                Exception ex)
+
+        {
             return;
         }
 
