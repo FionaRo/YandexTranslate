@@ -1,7 +1,6 @@
 package ru.yandex.translate.Objects;
 
 import android.os.Environment;
-import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,33 +10,26 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 
 public class History implements Serializable {
 
-    LinkedList<String[]> history = new LinkedList<>();
+    LinkedList<TextTranslate> history = new LinkedList<>();
 
     //добавление элемента в историю
-    public void addHistory(String[] s) {
-        deleteHistory(s); //избегание повторов
-        history.push(s); //если такой перевод уже существовал, то он в конец списка
+    public void addHistory(TextTranslate obj) {
+        history.remove(obj); //избегание повторов
+        history.push(obj); //если такой перевод уже существовал, то он в конец списка
     }
 
     //удаление эдемента из истории
-    public void deleteHistory(String[] s) {
-        for (String[] el :
-                history) {
-            if (el[0].equals(s[0]) && el[1].equals(s[1])) {
-                history.remove(el);
-                break;
-            }
-        }
+    public void deleteHistory(TextTranslate obj) {
+        history.remove(obj);
     }
 
     //получение полной истории
-    public LinkedList<String[]> getHistory() {
+    public LinkedList<TextTranslate> getHistory() {
         return history;
     }
 

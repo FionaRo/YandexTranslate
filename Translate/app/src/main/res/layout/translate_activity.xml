@@ -96,16 +96,32 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="15dp"
         android:orientation="horizontal"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_translate">
+        app:layout_constraintTop_toBottomOf="@+id/btn_translate"
+        android:id="@+id/linearLayout5">
 
         <TextView
             android:id="@+id/translation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:lines="2"
+            android:maxLines="10" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginStart="8dp"
+        android:autoLink="web"
+        android:linksClickable="true"
+        android:text="«Реализовано с помощью сервиса «Яндекс.Переводчик»» http://translate.yandex.ru/"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout4"
+        app:layout_constraintLeft_toLeftOf="parent" />
 </android.support.constraint.ConstraintLayout>

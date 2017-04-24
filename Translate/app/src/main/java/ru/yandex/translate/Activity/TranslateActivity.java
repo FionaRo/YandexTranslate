@@ -6,6 +6,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.WindowDecorActionBar;
+import android.text.Html;
+import android.text.Spanned;
+import android.text.SpannedString;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -17,14 +21,17 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import ru.yandex.translate.Objects.History;
 import ru.yandex.translate.Objects.Settings;
+import ru.yandex.translate.Objects.TextTranslate;
 import ru.yandex.translate.R;
 import ru.yandex.translate.YanAPI.GetLangs;
 import ru.yandex.translate.YanAPI.Translate;
@@ -37,10 +44,14 @@ public class TranslateActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.translate_activity);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        //создаем ассоциативный массив недавних запросов - расчитан на одну сессию
         recentRequest = new HashMap<>();
+
         try {
             settings = Settings.loadSettings("settings"); //загружаем настройки с языками
 
@@ -49,6 +60,8 @@ public class TranslateActivity extends AppCompatActivity {
 
             Collection<String> collection = settings.getLangs().keySet(); //получаем ключи: Английский, Русский и т.д
             LinkedList<String> list = new LinkedList<>(collection); //преобразуем в связный список
+            Collections.sort(list); //сортируем по алфавиту
+
             //создаём адаптер, связанный со списком
             ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, list);
 
@@ -58,21 +71,15 @@ public class TranslateActivity extends AppCompatActivity {
             toLang.setAdapter(adapter);
             toLang.setSelection(adapter.getPosition("Английский")); //устанавливаем по умолчанию
 
-            history = History.loadHistory("history"); //загружаем историю
-
-        } catch (IOException ex) {
-            this.finish();
-        } catch (ClassNotFoundException ex) {
-            this.finish();
-        } catch (TimeoutException ex) {
-            this.finish();
-        } catch (InterruptedException e) {
-            this.finish();
-        } catch (ExecutionException e) {
-            this.finish();
-        } catch (JSONException e) {
-            this.finish();
+        } catch (Exception ex) {
+            this.finish(); //если не загрузились настройки - приложение не будет работать
         }
+        try {
+            history = History.loadHistory("history"); //загружаем историю
+        } catch (Exception ex) {
+            history = new History();
+        }
+
     }
 
     //переход на экран истории
@@ -88,43 +95,61 @@ public class TranslateActivity extends AppCompatActivity {
     }
 
     //перевод
-    public void YanTranslate(View view) {
+    public void YanTranslate(View view) throws Exception {
+
         try {
-            history = History.loadHistory("history"); //перезвгружаем историю - возможно что-то поменялось
-        } catch (IOException ex) {
-            return;
-        } catch (ClassNotFoundException ex) {
-            return;
+            history = History.loadHistory("history"); //перезагружаем историю - возможно что-то поменялось
+        } catch (Exception ex) {
+            history = new History();
         }
-        EditText text = (EditText) findViewById(R.id.trans_text);
-        AsyncTask<String, Void, String> t = new Translate();
+
+        EditText text = (EditText) findViewById(R.id.trans_text); //поле текста ввода
+        AsyncTask<String, Void, String> t = new Translate(); //создаем таск на перевод
 
         String fromLang = ((Spinner) findViewById(R.id.from_lang)).getSelectedItem().toString(); //получем ключ - с какого языка переводить
         String toLang = ((Spinner) findViewById(R.id.to_lang)).getSelectedItem().toString();//на какой язык переводить
+
         //получаем направление перевода для запроса
         String directionTranslate = settings.getLangs().get(fromLang).toString() + "-" + settings.getLangs().get(toLang).toString();
+
         t.execute(directionTranslate, text.getText().toString()); //запускаем перевод
-        TextView et = (TextView) findViewById(R.id.translation);
-        String translate;
+
+        TextView et = (TextView) findViewById(R.id.translation); //поле вывода перевода
+
+        TextTranslate translate = new TextTranslate(); //перевод
+
         try {
-            translate = recentRequest.get(text.getText().toString() +" - "+toLang); //проверяем был ли недавно такой запрос
-            if (translate == null) {
-                translate = t.get(5, TimeUnit.SECONDS);
-                recentRequest.put(text.getText().toString() + " - " + toLang, translate);
-                String[] element = {text.getText().toString(), translate};
-                history.addHistory(element); //добавляем перевод в историю
-                history.saveHistory("history"); //сохраняем историю
+            translate.setDirectionTranslate(fromLang, toLang);
+
+            //проверяем был ли недавно такой запрос
+            String request = recentRequest.get(text.getText().toString() + " - " + toLang);
+            if (request == null) {
+                request = t.get(5, TimeUnit.SECONDS);
+                if (request == null)
+                    throw new RuntimeException();
+                recentRequest.put(text.getText().toString() + " - " + toLang, request);
+                translate.setPairTranslate(text.getText().toString(), request);
+                history.addHistory(translate); //добавляем перевод в историю
             }
-            et.setText(translate); //выводим перевод
-        } catch (IOException ex) {
-            this.finish();
+            request = request.replace("\\n", "<br>");
+            request = request.replace("\\\"", "&quot;");
+            et.setText(Html.fromHtml(request)); //выводим перевод
         } catch (ExecutionException ex) {
-            this.finish();
+            et.setText("Не удалось связаться с сервером");
         } catch (TimeoutException ex) {
-            et.setText("Соединение с интернетом не установлено");
+            et.setText("Проверьте соединение с интернетом");
             return;
         } catch (InterruptedException ex) {
-            et.setText("Не удалось выполнить соединение с сервером");
+            et.setText("Запрос к серверу был прерван");
+            return;
+        } catch (RuntimeException ex) {
+            et.setText("Не удалось получить ответ от сервера");
+            return;
+        }
+
+        try {
+            history.saveHistory("history"); //сохраняем историю
+        } catch (Exception ex) {
             return;
         }
 
@@ -139,6 +164,7 @@ public class TranslateActivity extends AppCompatActivity {
 
         Spinner from = (Spinner) findViewById(R.id.from_lang);
         Spinner to = (Spinner) findViewById(R.id.to_lang);
+
         //заменяем занчения выбора
         from.setSelection(toLang);
         to.setSelection(fromLang);

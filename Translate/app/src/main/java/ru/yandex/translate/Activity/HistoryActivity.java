@@ -19,53 +19,62 @@ public class HistoryActivity extends Activity {
 
     History history;
     Favorites favorites;
-    LinkedList<String[]> selectedItem; //список выбранных элементов
+    LinkedList<TextTranslate> selectedItem; //список выбранных элементов
     ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.history_activity);
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        //подгружаем историю
         try {
             history = History.loadHistory("history");
+        } catch (Exception ex) {
+            history = new History();
+        }
+        //подргружаем избранное
+        try {
             favorites = Favorites.loadFavor("favor"); //подгружаем избранное для возможности добавления элементов из истории
-        } catch (IOException ex) {
-            this.finish();
-        } catch (ClassNotFoundException ex){
-            this.finish();
+        } catch (Exception ex) {
+            favorites = new Favorites();
         }
 
-        final ListView listView = (ListView) findViewById(R.id.list_history);
-        final LinkedList<String> list = new LinkedList<>();
+
+        final ListView historyView = (ListView) findViewById(R.id.list_history); //История
+        final LinkedList<String> historyElements = new LinkedList<>(); //список элементов listView
+
         //приводим элементы к виду "Текст - перевод"
-        for (String[] s :
+        for (TextTranslate el :
                 history.getHistory()) {
-            list.push(s[0] + " - " + s[1]);
+            historyElements.push(el.toString());
         }
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, list);
-        listView.setAdapter(adapter);
 
+        //заполняем ListView историей
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, historyElements);
+        historyView.setAdapter(adapter);
+        //создаем список выбранных элементов
         selectedItem = new LinkedList<>();
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        historyView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                SparseBooleanArray sp = listView.getCheckedItemPositions();
-                String[] hist = list.get(position).split(" - ");
+                SparseBooleanArray sp = historyView.getCheckedItemPositions();
+                String[] hist = historyElements.get(position).split(" - ");
+                TextTranslate textTranslate = new TextTranslate(hist[0], hist[1]);
                 Button butAdd = (Button) findViewById(R.id.btn_add_favor), butDel = (Button) findViewById(R.id.btn_delete);
+
+                //если элемент выбран - добавляем в список выбранных, иначе удаляем из него
                 if (sp.get(position)) {
-                    selectedItem.push(hist);
+                    selectedItem.push(textTranslate);
                 } else {
-                    for (String[] el:
-                            selectedItem) {
-                        if (el[0].equals(hist[0]) && el[1].equals(hist[1])) {
-                            selectedItem.remove(el);
-                            break;
-                        }
-                    }
+                    selectedItem.remove(textTranslate);
                 }
+
                 //0 элементов - кнопки не показываются
+                //1 и больше - показываются
                 if (selectedItem.size() > 0) {
                     butAdd.setVisibility(View.VISIBLE);
                     butDel.setVisibility(View.VISIBLE);
@@ -81,10 +90,9 @@ public class HistoryActivity extends Activity {
     //добавление в избранное
     public void addToFavor(View view) {
         //добавляем все элементы в избранное
-        for (String[] el :
+        for (TextTranslate el :
                 selectedItem) {
-            String[] favor = {el[0], el[1]};
-            favorites.addFavor(favor);
+            favorites.addFavor(el);
             try {
                 favorites.saveFavor("favor"); //сохраняем избранное
             } catch (IOException ex) {
@@ -96,19 +104,18 @@ public class HistoryActivity extends Activity {
     //удаление из истории
     public void deleteFromHistory(View view) {
         //удаляем все выбранные элементы
-        for (String[] el :
+        for (TextTranslate el :
                 selectedItem) {
             history.deleteHistory(el);
         }
         try {
             history.saveHistory("history"); //сохраняем историю
         } catch (IOException ex) {
-           return;
+            return;
         }
-        for (String[] el :
+        for (TextTranslate el :
                 selectedItem) {
-            String del = el[0] + " - " + el[1];
-            adapter.remove(del); //удаляем все элементы из адаптера
+            adapter.remove(el.toString()); //удаляем все элементы из адаптера
         }
         //уведомляем об изменеии
         adapter.notifyDataSetChanged();

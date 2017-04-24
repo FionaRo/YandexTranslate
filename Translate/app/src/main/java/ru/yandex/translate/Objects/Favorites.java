@@ -1,7 +1,6 @@
 package ru.yandex.translate.Objects;
 
 import android.os.Environment;
-import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,27 +15,21 @@ import java.util.LinkedList;
 
 public class Favorites implements Serializable {
 
-    LinkedList<String[]> favorites = new LinkedList<>();
+    LinkedList<TextTranslate> favorites = new LinkedList<>();
 
     //добаление элемента в избранное
-    public void addFavor(String[] favor) {
-        deleteFavor(favor); //исключение хранения одинаковых элементов в избранном
-        favorites.push(favor);
+    public void addFavor(TextTranslate obj) {
+        favorites.remove(obj); //исключение хранения одинаковых элементов в избранном
+        favorites.push(obj);
     }
 
     //удаление элемента из избранного
-    public void deleteFavor(String[] favor) {
-        for (String[] el :
-                favorites) {
-            if (el[0].equals(favor[0]) && el[1].equals(favor[1])) {
-                favorites.remove(el);
-                break;
-            }
-        }
+    public void deleteFavor(TextTranslate obj) {
+       favorites.remove(obj);
     }
 
     //получение списка избранного
-    public LinkedList<String[]> getFavorites() {
+    public LinkedList<TextTranslate> getFavorites() {
         return favorites;
     }
 
