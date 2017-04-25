@@ -64,23 +64,12 @@ public class HistoryActivity extends Activity {
                 SparseBooleanArray sp = historyView.getCheckedItemPositions();
                 String[] hist = historyElements.get(position).split(" - ");
                 TextTranslate textTranslate = new TextTranslate(hist[0], hist[1]);
-                Button butAdd = (Button) findViewById(R.id.btn_add_favor), butDel = (Button) findViewById(R.id.btn_delete);
 
                 //если элемент выбран - добавляем в список выбранных, иначе удаляем из него
                 if (sp.get(position)) {
                     selectedItem.push(textTranslate);
                 } else {
                     selectedItem.remove(textTranslate);
-                }
-
-                //0 элементов - кнопки не показываются
-                //1 и больше - показываются
-                if (selectedItem.size() > 0) {
-                    butAdd.setVisibility(View.VISIBLE);
-                    butDel.setVisibility(View.VISIBLE);
-                } else {
-                    butAdd.setVisibility(View.INVISIBLE);
-                    butDel.setVisibility(View.INVISIBLE);
                 }
             }
         });

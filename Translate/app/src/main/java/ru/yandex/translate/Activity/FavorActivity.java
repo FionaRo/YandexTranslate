@@ -60,22 +60,11 @@ public class FavorActivity extends Activity {
                 String[] hist = list.get(position).split(" - "); //получаем два элемента: текст и перевод
                 TextTranslate textTranslate = new TextTranslate(hist[0], hist[1]);
 
-                Button butDelete = (Button) findViewById(R.id.btn_delete); //кнопка удаления
-
                 //если выбрано - добавляем элемент, иначе находим и удаляем
                 if (sp.get(position)) {
                     selectedItem.push(textTranslate);
                 } else {
                     selectedItem.remove(textTranslate);
-                }
-
-                //кнопка удаления показывается в зависимости от количества выбранных элементов
-                //0 элементов - не показывается
-                //2 и больше - показывается
-                if (selectedItem.size() > 0) {
-                    butDelete.setVisibility(View.VISIBLE);
-                } else {
-                    butDelete.setVisibility(View.INVISIBLE);
                 }
             }
         });
@@ -101,7 +90,6 @@ public class FavorActivity extends Activity {
                 selectedItem) {
             adapter.remove(el.toString());
         }
-
         //уведомляем об изменении данных
         adapter.notifyDataSetChanged();
 

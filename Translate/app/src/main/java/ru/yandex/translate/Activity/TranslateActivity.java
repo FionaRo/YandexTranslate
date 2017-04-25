@@ -123,7 +123,7 @@ public class TranslateActivity extends AppCompatActivity {
             translate.setDirectionTranslate(fromLang, toLang);
 
             //проверяем был ли недавно такой запрос
-            LinkedList<String> recent = recentRequest.get(text.getText().toString() + " - " + toLang);
+            LinkedList<String> recent = recentRequest.get(text.getText().toString() + " - " + fromLang + " - " + toLang);
             String request;
             if (recent == null) {
 
@@ -131,7 +131,7 @@ public class TranslateActivity extends AppCompatActivity {
                 task.execute(directionTranslate, text.getText().toString());
                 recent = Dictionary.getDictionary(task.get(5, TimeUnit.SECONDS));
                 if (recent != null) {
-                    recentRequest.put(text.getText().toString() + " - " + toLang, recent);
+                    recentRequest.put(text.getText().toString() + " - " + fromLang + " - " + toLang, recent);
                     translate.setPairTranslate(text.getText().toString(), recent.getLast());
                     history.addHistory(translate); //добавляем перевод в историю
                 } else {
@@ -142,7 +142,7 @@ public class TranslateActivity extends AppCompatActivity {
                     request = request.replace("\\n", "<br>");
                     request = request.replace("\\\"", "&quot;");
                     recent.push(request);
-                    recentRequest.put(text.getText().toString() + " - " + toLang, recent);
+                    recentRequest.put(text.getText().toString() + " - " + fromLang + " - " + toLang, recent);
                     translate.setPairTranslate(text.getText().toString(), recent.getLast());
                     history.addHistory(translate); //добавляем перевод в историю
                 }
