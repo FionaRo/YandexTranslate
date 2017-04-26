@@ -116,11 +116,18 @@ public class TranslateActivity extends AppCompatActivity {
         t.execute(directionTranslate, text.getText().toString()); //запускаем перевод
 
         TextView et = (TextView) findViewById(R.id.translation); //поле вывода перевода
-
+        //если пользователь ничего не ввел - иначе будет ошибка сервера
+        if (text.getText().toString().equals(""))
+        {
+            et.setText("");
+            return;
+        }
         TextTranslate translate = new TextTranslate(); //перевод
 
+        translate.setDirectionTranslate(fromLang, toLang);
+
+
         try {
-            translate.setDirectionTranslate(fromLang, toLang);
 
             //проверяем был ли недавно такой запрос
             LinkedList<String> recent = recentRequest.get(text.getText().toString() + " - " + fromLang + " - " + toLang);
